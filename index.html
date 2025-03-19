@@ -39,7 +39,7 @@
             color: #2c3e50;
         }
 
-        .file-input {
+        .input-section {
             margin-bottom: 20px;
             background: #f9f9f9;
             padding: 15px;
@@ -47,7 +47,25 @@
             border: 1px solid #ddd;
         }
 
-        .file-input label {
+        .input-section h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+
+        .input-option {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .input-option:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .input-option label {
             display: block;
             margin-bottom: 10px;
             font-weight: bold;
@@ -61,6 +79,10 @@
             border-radius: 4px;
             margin-bottom: 10px;
             font-family: monospace;
+        }
+
+        .file-upload {
+            margin-top: 10px;
         }
 
         .btn {
@@ -103,6 +125,15 @@
             text-align: center;
             font-size: 16px;
             color: #555;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .stat-item {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
         }
 
         .flashcard {
@@ -159,6 +190,7 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
+            margin-bottom: 20px;
         }
 
         .rating-buttons {
@@ -166,6 +198,7 @@
             justify-content: center;
             margin-top: 10px;
             width: 100%;
+            flex-wrap: wrap;
             gap: 10px;
         }
 
@@ -181,6 +214,11 @@
             background-color: #27ae60;
         }
 
+        .complete-btn {
+            background-color: #8e44ad;
+            margin-top: 10px;
+        }
+
         .term-list {
             margin-top: 30px;
             background: #f9f9f9;
@@ -192,6 +230,19 @@
         .term-list h2 {
             margin-bottom: 15px;
             color: #2c3e50;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .filter-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
         }
 
         .term-list ul {
@@ -232,6 +283,22 @@
             color: white;
         }
 
+        .status-complete {
+            background-color: #8e44ad;
+            color: white;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .reset-btn {
+            cursor: pointer;
+            color: #e74c3c;
+            font-size: 14px;
+        }
+
         .debug-info {
             margin-top: 20px;
             padding: 10px;
@@ -250,13 +317,28 @@
             <h1>Flashcard Memorization System</h1>
         </header>
         
-        <div class="file-input">
-            <label for="textInput">Enter your terms and descriptions (one per line in format "term:description")</label>
-            <textarea id="textInput" placeholder="apple:a red fruit
+        <div class="input-section">
+            <h2>Add Your Flashcards</h2>
+            
+            <div class="input-option">
+                <label for="textInput">Enter terms and descriptions (format: term:description)</label>
+                <textarea id="textInput" placeholder="apple:a red fruit
 cat:a small domestic animal
 JavaScript:a programming language"></textarea>
-            <button id="loadBtn" class="btn">Load Flashcards</button>
-            <button id="sampleBtn" class="btn">Load Sample Data</button>
+                <button id="loadTextBtn" class="btn">Load Flashcards</button>
+            </div>
+            
+            <div class="input-option">
+                <label for="fileInput">Or upload a .txt file (same format)</label>
+                <input type="file" id="fileInput" accept=".txt">
+                <div class="file-upload">
+                    <button id="loadFileBtn" class="btn">Load From File</button>
+                </div>
+            </div>
+            
+            <div class="input-option">
+                <button id="sampleBtn" class="btn">Load Sample Data</button>
+            </div>
         </div>
         
         <div class="stats">
@@ -264,7 +346,10 @@ JavaScript:a programming language"></textarea>
                 <div class="progress-bar" id="progress-bar"></div>
             </div>
             <div class="stats-text">
-                <span id="learned-count">0</span> learned of <span id="total-count">0</span> terms
+                <div class="stat-item"><span id="total-count">0</span> total</div>
+                <div class="stat-item"><span id="learning-count">0</span> learning</div>
+                <div class="stat-item"><span id="learned-count">0</span> learned</div>
+                <div class="stat-item"><span id="complete-count">0</span> complete</div>
             </div>
         </div>
         
@@ -285,11 +370,18 @@ JavaScript:a programming language"></textarea>
                 <button class="btn rating-btn" data-rating="1">Hard</button>
                 <button class="btn rating-btn" data-rating="3">Good</button>
                 <button class="btn rating-btn" data-rating="5">Easy</button>
+                <button id="complete-btn" class="btn complete-btn">Mark Complete</button>
             </div>
         </div>
         
         <div class="term-list">
-            <h2>Terms to Learn</h2>
+            <h2>Your Flashcards</h2>
+            <div class="filter-options">
+                <label><input type="checkbox" id="filter-new" checked> New</label>
+                <label><input type="checkbox" id="filter-learning" checked> Learning</label>
+                <label><input type="checkbox" id="filter-learned" checked> Learned</label>
+                <label><input type="checkbox" id="filter-complete" checked> Complete</label>
+            </div>
             <ul id="terms"></ul>
         </div>
         
@@ -302,30 +394,48 @@ JavaScript:a programming language"></textarea>
             function debug(message) {
                 console.log(message);
                 const debugEl = document.getElementById('debug-info');
-                debugEl.innerHTML += message + '<br>';
+                if (debugEl) {
+                    debugEl.innerHTML += message + '<br>';
+                }
             }
 
             // DOM elements
             const textInput = document.getElementById('textInput');
-            const loadBtn = document.getElementById('loadBtn');
+            const fileInput = document.getElementById('fileInput');
+            const loadTextBtn = document.getElementById('loadTextBtn');
+            const loadFileBtn = document.getElementById('loadFileBtn');
             const sampleBtn = document.getElementById('sampleBtn');
             const flashcard = document.getElementById('flashcard');
             const termElement = document.getElementById('term');
             const descriptionElement = document.getElementById('description');
             const showAnswerBtn = document.getElementById('show-answer');
             const ratingButtons = document.getElementById('rating-buttons');
+            const completeBtn = document.getElementById('complete-btn');
             const progressBar = document.getElementById('progress-bar');
-            const learnedCount = document.getElementById('learned-count');
             const totalCount = document.getElementById('total-count');
+            const learningCount = document.getElementById('learning-count');
+            const learnedCount = document.getElementById('learned-count');
+            const completeCount = document.getElementById('complete-count');
             const termsList = document.getElementById('terms');
+            
+            // Filter checkboxes
+            const filterNew = document.getElementById('filter-new');
+            const filterLearning = document.getElementById('filter-learning');
+            const filterLearned = document.getElementById('filter-learned');
+            const filterComplete = document.getElementById('filter-complete');
             
             // Flashcard data
             let flashcards = [];
             let currentIndex = 0;
-            let learned = 0;
+            let stats = {
+                new: 0,
+                learning: 0,
+                learned: 0,
+                complete: 0
+            };
             
-            // Event listeners
-            loadBtn.addEventListener('click', function() {
+            // Event listeners for input methods
+            loadTextBtn.addEventListener('click', function() {
                 const text = textInput.value.trim();
                 if (text) {
                     parseFlashcards(text);
@@ -334,15 +444,44 @@ JavaScript:a programming language"></textarea>
                 }
             });
             
+            loadFileBtn.addEventListener('click', function() {
+                if (fileInput.files.length === 0) {
+                    alert("Please select a file first.");
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    parseFlashcards(text);
+                };
+                
+                reader.onerror = function() {
+                    alert("Error reading file. Please try again.");
+                };
+                
+                reader.readAsText(file);
+            });
+            
             sampleBtn.addEventListener('click', loadSampleData);
             showAnswerBtn.addEventListener('click', showAnswer);
+            completeBtn.addEventListener('click', markComplete);
             
+            // Rating button listeners
             document.querySelectorAll('.rating-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const rating = parseInt(this.getAttribute('data-rating'));
                     rateCard(rating);
                 });
             });
+            
+            // Filter change listeners
+            filterNew.addEventListener('change', updateTermsList);
+            filterLearning.addEventListener('change', updateTermsList);
+            filterLearned.addEventListener('change', updateTermsList);
+            filterComplete.addEventListener('change', updateTermsList);
             
             // Function to load sample data
             function loadSampleData() {
@@ -351,7 +490,11 @@ cat:a small domesticated carnivorous mammal
 JavaScript:a high-level programming language often used for web development
 mountain:a large natural elevation of the earth's surface
 ocean:a very large expanse of sea
-book:a written or printed work consisting of pages`;
+book:a written or printed work consisting of pages
+computer:an electronic device that can store, retrieve, and process data
+coffee:a beverage made from roasted coffee beans
+bicycle:a vehicle with two wheels propelled by pedals
+democracy:a system of government by the whole population`;
                 
                 textInput.value = sampleData;
                 parseFlashcards(sampleData);
@@ -362,7 +505,12 @@ book:a written or printed work consisting of pages`;
                 // Reset data
                 flashcards = [];
                 currentIndex = 0;
-                learned = 0;
+                stats = {
+                    new: 0,
+                    learning: 0,
+                    learned: 0,
+                    complete: 0
+                };
                 
                 // Parse the text (format: term:description)
                 const lines = text.split('\n');
@@ -395,15 +543,14 @@ book:a written or printed work consisting of pages`;
                         nextReview: Date.now(),
                         interval: 0
                     });
+                    stats.new++;
                     validCards++;
                 }
                 
                 debug(`Added ${validCards} valid flashcards`);
                 
                 // Update UI
-                totalCount.textContent = flashcards.length;
-                learnedCount.textContent = '0';
-                updateProgressBar();
+                updateStats();
                 updateTermsList();
                 
                 if (flashcards.length > 0) {
@@ -424,9 +571,13 @@ book:a written or printed work consisting of pages`;
                     return;
                 }
                 
-                // Find cards due for review
+                // Find cards due for review (exclude complete and learned cards)
                 const now = Date.now();
-                let dueCards = flashcards.filter(card => card.nextReview <= now && card.status !== 'learned');
+                let dueCards = flashcards.filter(card => 
+                    card.nextReview <= now && 
+                    card.status !== 'learned' && 
+                    card.status !== 'complete'
+                );
                 
                 if (dueCards.length === 0) {
                     termElement.textContent = "All caught up!";
@@ -458,7 +609,10 @@ book:a written or printed work consisting of pages`;
                 
                 // Update status if needed
                 if (flashcards[currentIndex].status === 'new') {
+                    stats.new--;
+                    stats.learning++;
                     flashcards[currentIndex].status = 'learning';
+                    updateStats();
                     updateTermsList();
                 }
             }
@@ -468,6 +622,28 @@ book:a written or printed work consisting of pages`;
                 flashcard.classList.add('flipped');
                 showAnswerBtn.style.display = 'none';
                 ratingButtons.style.display = 'flex';
+            }
+            
+            // Mark current card as complete
+            function markComplete() {
+                const card = flashcards[currentIndex];
+                
+                // Update stats based on previous status
+                if (card.status === 'new') {
+                    stats.new--;
+                } else if (card.status === 'learning') {
+                    stats.learning--;
+                } else if (card.status === 'learned') {
+                    stats.learned--;
+                }
+                
+                // Mark as complete
+                card.status = 'complete';
+                stats.complete++;
+                
+                updateStats();
+                updateTermsList();
+                showNextCard();
             }
             
             // Rate how well you knew the card
@@ -487,34 +663,102 @@ book:a written or printed work consisting of pages`;
                 card.nextReview = Date.now() + (card.interval * 60 * 1000);
                 
                 // Mark as learned if interval is large enough
-                if (card.interval >= 10 && card.status !== 'learned') {
+                if (card.interval >= 10 && card.status === 'learning') {
+                    stats.learning--;
+                    stats.learned++;
                     card.status = 'learned';
-                    learned++;
-                    learnedCount.textContent = learned;
-                    updateProgressBar();
                 }
                 
+                updateStats();
                 updateTermsList();
                 showNextCard();
             }
             
-            // Update the progress bar
-            function updateProgressBar() {
-                const percentage = flashcards.length > 0 ? (learned / flashcards.length) * 100 : 0;
-                progressBar.style.width = `${percentage}%`;
+            // Update statistics display
+            function updateStats() {
+                totalCount.textContent = flashcards.length;
+                learningCount.textContent = stats.learning;
+                learnedCount.textContent = stats.learned;
+                completeCount.textContent = stats.complete;
+                
+                // Update progress bar (learned + complete as progress)
+                const progress = flashcards.length > 0 ? 
+                    ((stats.learned + stats.complete) / flashcards.length) * 100 : 0;
+                progressBar.style.width = `${progress}%`;
+            }
+            
+            // Reset a card to "new" status
+            function resetCard(index) {
+                const card = flashcards[index];
+                
+                // Update stats based on previous status
+                if (card.status === 'learning') {
+                    stats.learning--;
+                } else if (card.status === 'learned') {
+                    stats.learned--;
+                } else if (card.status === 'complete') {
+                    stats.complete--;
+                }
+                
+                // Reset to new
+                card.status = 'new';
+                card.interval = 0;
+                card.nextReview = Date.now();
+                stats.new++;
+                
+                updateStats();
+                updateTermsList();
             }
             
             // Update the list of terms
             function updateTermsList() {
                 termsList.innerHTML = '';
                 
-                flashcards.forEach((card, index) => {
+                // Apply filters
+                const filters = {
+                    new: filterNew.checked,
+                    learning: filterLearning.checked,
+                    learned: filterLearned.checked,
+                    complete: filterComplete.checked
+                };
+                
+                const filteredCards = flashcards.filter(card => filters[card.status]);
+                
+                filteredCards.forEach((card, i) => {
+                    const index = flashcards.indexOf(card);
                     const li = document.createElement('li');
-                    li.innerHTML = `
-                        ${card.term} 
-                        <span class="status status-${card.status}">${card.status}</span>
-                    `;
                     
+                    // Create term display
+                    const termSpan = document.createElement('span');
+                    termSpan.textContent = card.term;
+                    li.appendChild(termSpan);
+                    
+                    // Create status and actions container
+                    const actionsSpan = document.createElement('div');
+                    actionsSpan.className = 'card-actions';
+                    
+                    // Add status badge
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = `status status-${card.status}`;
+                    statusSpan.textContent = card.status;
+                    actionsSpan.appendChild(statusSpan);
+                    
+                    // Add reset option
+                    if (card.status !== 'new') {
+                        const resetSpan = document.createElement('span');
+                        resetSpan.className = 'reset-btn';
+                        resetSpan.textContent = '↺';
+                        resetSpan.title = 'Reset to new';
+                        resetSpan.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            resetCard(index);
+                        });
+                        actionsSpan.appendChild(resetSpan);
+                    }
+                    
+                    li.appendChild(actionsSpan);
+                    
+                    // Make whole item clickable to view the card
                     li.addEventListener('click', () => {
                         currentIndex = index;
                         termElement.textContent = card.term;
@@ -526,6 +770,15 @@ book:a written or printed work consisting of pages`;
                     
                     termsList.appendChild(li);
                 });
+                
+                if (filteredCards.length === 0) {
+                    const li = document.createElement('li');
+                    li.textContent = 'No cards match the selected filters';
+                    li.style.justifyContent = 'center';
+                    li.style.fontStyle = 'italic';
+                    li.style.color = '#999';
+                    termsList.appendChild(li);
+                }
             }
         });
     </script>
