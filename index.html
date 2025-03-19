@@ -85,20 +85,39 @@
             margin-top: 10px;
         }
 
+        .buttons-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
         .btn {
             padding: 10px 20px;
-            margin: 5px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
             background-color: #3498db;
             color: white;
         }
 
         .btn:hover {
             background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-export {
+            background-color: #2ecc71;
+        }
+
+        .btn-export:hover {
+            background-color: #27ae60;
         }
 
         .stats {
@@ -127,6 +146,7 @@
             color: #555;
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 20px;
         }
 
@@ -141,6 +161,7 @@
             height: 200px;
             perspective: 1000px;
             margin-bottom: 20px;
+            cursor: pointer;
         }
 
         .flashcard-inner {
@@ -183,6 +204,15 @@
             color: white;
             transform: rotateY(180deg);
             font-size: 18px;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
         }
 
         .controls {
@@ -236,6 +266,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
         .filter-options label {
@@ -309,6 +340,19 @@
             font-size: 12px;
             display: none;
         }
+
+        @media (max-width: 600px) {
+            .stats-text {
+                flex-direction: column;
+                gap: 5px;
+                align-items: center;
+            }
+            
+            .filter-options {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -325,7 +369,11 @@
                 <textarea id="textInput" placeholder="apple:a red fruit
 cat:a small domestic animal
 JavaScript:a programming language"></textarea>
-                <button id="loadTextBtn" class="btn">Load Flashcards</button>
+                
+                <div class="buttons-row">
+                    <button id="loadTextBtn" class="btn">Load Flashcards</button>
+                    <button id="exportBtn" class="btn btn-export">Export Flashcards</button>
+                </div>
             </div>
             
             <div class="input-option">
@@ -357,6 +405,7 @@ JavaScript:a programming language"></textarea>
             <div class="flashcard-inner">
                 <div class="flashcard-front">
                     <p id="term">Enter terms above to begin</p>
+                    <div class="click-hint">Click card to flip</div>
                 </div>
                 <div class="flashcard-back">
                     <p id="description"></p>
@@ -404,8 +453,9 @@ JavaScript:a programming language"></textarea>
             const fileInput = document.getElementById('fileInput');
             const loadTextBtn = document.getElementById('loadTextBtn');
             const loadFileBtn = document.getElementById('loadFileBtn');
+            const exportBtn = document.getElementById('exportBtn');
             const sampleBtn = document.getElementById('sampleBtn');
-            const flashcard = document.getElementById('flashcard');
+            const flashcardEl = document.getElementById('flashcard');
             const termElement = document.getElementById('term');
             const descriptionElement = document.getElementById('description');
             const showAnswerBtn = document.getElementById('show-answer');
@@ -465,9 +515,22 @@ JavaScript:a programming language"></textarea>
                 reader.readAsText(file);
             });
             
+            exportBtn.addEventListener('click', exportFlashcards);
             sampleBtn.addEventListener('click', loadSampleData);
             showAnswerBtn.addEventListener('click', showAnswer);
             completeBtn.addEventListener('click', markComplete);
+            
+            // Add click event to the flashcard to show answer
+            flashcardEl.addEventListener('click', function() {
+                if (!flashcardEl.classList.contains('flipped') && 
+                    flashcards.length > 0 && 
+                    termElement.textContent !== "No flashcards loaded" &&
+                    termElement.textContent !== "All caught up!" &&
+                    termElement.textContent !== "No valid flashcards found" &&
+                    termElement.textContent !== "Enter terms above to begin") {
+                    showAnswer();
+                }
+            });
             
             // Rating button listeners
             document.querySelectorAll('.rating-btn').forEach(button => {
@@ -522,29 +585,55 @@ democracy:a system of government by the whole population`;
                     const line = lines[i].trim();
                     if (line === '') continue;
                     
-                    const colonIndex = line.indexOf(':');
-                    if (colonIndex === -1) {
-                        debug(`Line ${i+1} has no colon: ${line}`);
-                        continue;
+                    // Check if this is an export with status information
+                    const exportFormatMatch = line.match(/^(.+?):(.+?)\s*\[(new|learning|learned|complete)(?:,(\d+))?\]$/);
+                    
+                    if (exportFormatMatch) {
+                        // Format is term:description [status,interval]
+                        const term = exportFormatMatch[1].trim();
+                        const description = exportFormatMatch[2].trim();
+                        const status = exportFormatMatch[3];
+                        const interval = exportFormatMatch[4] ? parseInt(exportFormatMatch[4]) : 0;
+                        
+                        if (!term || !description) continue;
+                        
+                        flashcards.push({
+                            term,
+                            description,
+                            status,
+                            nextReview: Date.now() + (interval * 60 * 1000),
+                            interval
+                        });
+                        
+                        // Update stats
+                        stats[status]++;
+                        validCards++;
+                    } else {
+                        // Regular format: term:description
+                        const colonIndex = line.indexOf(':');
+                        if (colonIndex === -1) {
+                            debug(`Line ${i+1} has no colon: ${line}`);
+                            continue;
+                        }
+                        
+                        const term = line.substring(0, colonIndex).trim();
+                        const description = line.substring(colonIndex + 1).trim();
+                        
+                        if (!term || !description) {
+                            debug(`Line ${i+1} has empty term or description: ${line}`);
+                            continue;
+                        }
+                        
+                        flashcards.push({
+                            term,
+                            description,
+                            status: 'new',
+                            nextReview: Date.now(),
+                            interval: 0
+                        });
+                        stats.new++;
+                        validCards++;
                     }
-                    
-                    const term = line.substring(0, colonIndex).trim();
-                    const description = line.substring(colonIndex + 1).trim();
-                    
-                    if (!term || !description) {
-                        debug(`Line ${i+1} has empty term or description: ${line}`);
-                        continue;
-                    }
-                    
-                    flashcards.push({
-                        term,
-                        description,
-                        status: 'new',
-                        nextReview: Date.now(),
-                        interval: 0
-                    });
-                    stats.new++;
-                    validCards++;
                 }
                 
                 debug(`Added ${validCards} valid flashcards`);
@@ -560,6 +649,32 @@ democracy:a system of government by the whole population`;
                     descriptionElement.textContent = "Please check your input format (term:description)";
                     alert("No valid flashcards found. Please check the format (term:description).");
                 }
+            }
+            
+            // Export flashcards to a text file
+            function exportFlashcards() {
+                if (flashcards.length === 0) {
+                    alert("No flashcards to export.");
+                    return;
+                }
+                
+                let exportText = '';
+                
+                flashcards.forEach(card => {
+                    // Format: term:description [status,interval]
+                    exportText += `${card.term}:${card.description} [${card.status},${card.interval}]\n`;
+                });
+                
+                // Create a blob and download link
+                const blob = new Blob([exportText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'flashcards_export.txt';
+                a.click();
+                
+                // Clean up
+                URL.revokeObjectURL(url);
             }
             
             // Show the next card due for review
@@ -603,7 +718,7 @@ democracy:a system of government by the whole population`;
                 descriptionElement.textContent = flashcards[currentIndex].description;
                 
                 // Reset the flashcard state
-                flashcard.classList.remove('flipped');
+                flashcardEl.classList.remove('flipped');
                 showAnswerBtn.style.display = 'block';
                 ratingButtons.style.display = 'none';
                 
@@ -619,7 +734,7 @@ democracy:a system of government by the whole population`;
             
             // Show the answer (flip the card)
             function showAnswer() {
-                flashcard.classList.add('flipped');
+                flashcardEl.classList.add('flipped');
                 showAnswerBtn.style.display = 'none';
                 ratingButtons.style.display = 'flex';
             }
@@ -763,7 +878,7 @@ democracy:a system of government by the whole population`;
                         currentIndex = index;
                         termElement.textContent = card.term;
                         descriptionElement.textContent = card.description;
-                        flashcard.classList.remove('flipped');
+                        flashcardEl.classList.remove('flipped');
                         showAnswerBtn.style.display = 'block';
                         ratingButtons.style.display = 'none';
                     });
