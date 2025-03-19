@@ -3,35 +3,531 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memrise-Style Memorization</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Flashcard Memorization System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        .file-input {
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .file-input label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #textInput {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .stats {
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #27ae60;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .stats-text {
+            text-align: center;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 200px;
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .flashcard-front {
+            background-color: white;
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: bold;
+            border: 1px solid #eee;
+        }
+
+        .flashcard-back {
+            background-color: #3498db;
+            color: white;
+            transform: rotateY(180deg);
+            font-size: 18px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .rating-buttons {
+            display: none;
+            justify-content: center;
+            margin-top: 10px;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .rating-btn[data-rating="1"] {
+            background-color: #e74c3c;
+        }
+
+        .rating-btn[data-rating="3"] {
+            background-color: #f39c12;
+        }
+
+        .rating-btn[data-rating="5"] {
+            background-color: #27ae60;
+        }
+
+        .term-list {
+            margin-top: 30px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .term-list h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .term-list ul {
+            list-style-type: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .term-list li {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .term-list li:hover {
+            background-color: #f0f0f0;
+        }
+
+        .status {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        .status-new {
+            background-color: #e0e0e0;
+        }
+
+        .status-learning {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .status-learned {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="app-container">
+    <div class="container">
         <header>
-            <h1>Vocabulary Memorizer</h1>
+            <h1>Flashcard Memorization System</h1>
         </header>
         
         <div class="file-input">
-            <label for="vocab-file">Upload your vocabulary file (.txt):</label>
-            <input type="file" id="vocab-file" accept=".txt">
+            <label for="textInput">Enter your terms and descriptions (one per line in format "term:description")</label>
+            <textarea id="textInput" placeholder="apple:a red fruit
+cat:a small domestic animal
+JavaScript:a programming language"></textarea>
+            <button id="loadBtn" class="btn">Load Flashcards</button>
+            <button id="sampleBtn" class="btn">Load Sample Data</button>
         </div>
         
-        <div class="learning-area" id="learning-area">
-            <div id="progress-indicator"></div>
-            <div id="card-container" class="hidden">
-                <div id="question"></div>
-                <div id="answer" class="hidden"></div>
-                <button id="show-answer">Show Answer</button>
-                <div class="rating-buttons hidden" id="rating-buttons">
-                    <button class="rating-btn" data-rating="1">Hard</button>
-                    <button class="rating-btn" data-rating="3">Good</button>
-                    <button class="rating-btn" data-rating="5">Easy</button>
+        <div class="stats">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="stats-text">
+                <span id="learned-count">0</span> learned of <span id="total-count">0</span> terms
+            </div>
+        </div>
+        
+        <div class="flashcard" id="flashcard">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <p id="term">Enter terms above to begin</p>
+                </div>
+                <div class="flashcard-back">
+                    <p id="description"></p>
                 </div>
             </div>
-            <div id="stats-container"></div>
         </div>
+        
+        <div class="controls">
+            <button id="show-answer" class="btn">Show Answer</button>
+            <div class="rating-buttons" id="rating-buttons">
+                <button class="btn rating-btn" data-rating="1">Hard</button>
+                <button class="btn rating-btn" data-rating="3">Good</button>
+                <button class="btn rating-btn" data-rating="5">Easy</button>
+            </div>
+        </div>
+        
+        <div class="term-list">
+            <h2>Terms to Learn</h2>
+            <ul id="terms"></ul>
+        </div>
+        
+        <div id="debug-info" class="debug-info"></div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Debug function
+            function debug(message) {
+                console.log(message);
+                const debugEl = document.getElementById('debug-info');
+                debugEl.innerHTML += message + '<br>';
+            }
+
+            // DOM elements
+            const textInput = document.getElementById('textInput');
+            const loadBtn = document.getElementById('loadBtn');
+            const sampleBtn = document.getElementById('sampleBtn');
+            const flashcard = document.getElementById('flashcard');
+            const termElement = document.getElementById('term');
+            const descriptionElement = document.getElementById('description');
+            const showAnswerBtn = document.getElementById('show-answer');
+            const ratingButtons = document.getElementById('rating-buttons');
+            const progressBar = document.getElementById('progress-bar');
+            const learnedCount = document.getElementById('learned-count');
+            const totalCount = document.getElementById('total-count');
+            const termsList = document.getElementById('terms');
+            
+            // Flashcard data
+            let flashcards = [];
+            let currentIndex = 0;
+            let learned = 0;
+            
+            // Event listeners
+            loadBtn.addEventListener('click', function() {
+                const text = textInput.value.trim();
+                if (text) {
+                    parseFlashcards(text);
+                } else {
+                    alert("Please enter some flashcard data first.");
+                }
+            });
+            
+            sampleBtn.addEventListener('click', loadSampleData);
+            showAnswerBtn.addEventListener('click', showAnswer);
+            
+            document.querySelectorAll('.rating-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    rateCard(rating);
+                });
+            });
+            
+            // Function to load sample data
+            function loadSampleData() {
+                const sampleData = `apple:a fruit with red or green skin and a whitish interior
+cat:a small domesticated carnivorous mammal
+JavaScript:a high-level programming language often used for web development
+mountain:a large natural elevation of the earth's surface
+ocean:a very large expanse of sea
+book:a written or printed work consisting of pages`;
+                
+                textInput.value = sampleData;
+                parseFlashcards(sampleData);
+            }
+            
+            // Parse flashcards from text
+            function parseFlashcards(text) {
+                // Reset data
+                flashcards = [];
+                currentIndex = 0;
+                learned = 0;
+                
+                // Parse the text (format: term:description)
+                const lines = text.split('\n');
+                debug(`Found ${lines.length} lines in input`);
+                
+                let validCards = 0;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line === '') continue;
+                    
+                    const colonIndex = line.indexOf(':');
+                    if (colonIndex === -1) {
+                        debug(`Line ${i+1} has no colon: ${line}`);
+                        continue;
+                    }
+                    
+                    const term = line.substring(0, colonIndex).trim();
+                    const description = line.substring(colonIndex + 1).trim();
+                    
+                    if (!term || !description) {
+                        debug(`Line ${i+1} has empty term or description: ${line}`);
+                        continue;
+                    }
+                    
+                    flashcards.push({
+                        term,
+                        description,
+                        status: 'new',
+                        nextReview: Date.now(),
+                        interval: 0
+                    });
+                    validCards++;
+                }
+                
+                debug(`Added ${validCards} valid flashcards`);
+                
+                // Update UI
+                totalCount.textContent = flashcards.length;
+                learnedCount.textContent = '0';
+                updateProgressBar();
+                updateTermsList();
+                
+                if (flashcards.length > 0) {
+                    showNextCard();
+                } else {
+                    termElement.textContent = "No valid flashcards found";
+                    descriptionElement.textContent = "Please check your input format (term:description)";
+                    alert("No valid flashcards found. Please check the format (term:description).");
+                }
+            }
+            
+            // Show the next card due for review
+            function showNextCard() {
+                // Check if there are any flashcards
+                if (flashcards.length === 0) {
+                    termElement.textContent = "No flashcards loaded";
+                    showAnswerBtn.style.display = 'none';
+                    return;
+                }
+                
+                // Find cards due for review
+                const now = Date.now();
+                let dueCards = flashcards.filter(card => card.nextReview <= now && card.status !== 'learned');
+                
+                if (dueCards.length === 0) {
+                    termElement.textContent = "All caught up!";
+                    descriptionElement.textContent = "No cards due for review right now.";
+                    showAnswerBtn.style.display = 'none';
+                    ratingButtons.style.display = 'none';
+                    return;
+                }
+                
+                // Sort cards (new first, then by due date)
+                dueCards.sort((a, b) => {
+                    if (a.status === 'new' && b.status !== 'new') return -1;
+                    if (a.status !== 'new' && b.status === 'new') return 1;
+                    return a.nextReview - b.nextReview;
+                });
+                
+                // Get the next card
+                const cardIndex = flashcards.indexOf(dueCards[0]);
+                currentIndex = cardIndex;
+                
+                // Update the flashcard
+                termElement.textContent = flashcards[currentIndex].term;
+                descriptionElement.textContent = flashcards[currentIndex].description;
+                
+                // Reset the flashcard state
+                flashcard.classList.remove('flipped');
+                showAnswerBtn.style.display = 'block';
+                ratingButtons.style.display = 'none';
+                
+                // Update status if needed
+                if (flashcards[currentIndex].status === 'new') {
+                    flashcards[currentIndex].status = 'learning';
+                    updateTermsList();
+                }
+            }
+            
+            // Show the answer (flip the card)
+            function showAnswer() {
+                flashcard.classList.add('flipped');
+                showAnswerBtn.style.display = 'none';
+                ratingButtons.style.display = 'flex';
+            }
+            
+            // Rate how well you knew the card
+            function rateCard(rating) {
+                const card = flashcards[currentIndex];
+                
+                // Update interval based on rating
+                if (rating === 1) { // Hard
+                    card.interval = Math.max(1, Math.floor(card.interval * 0.5));
+                } else if (rating === 3) { // Good
+                    card.interval = card.interval === 0 ? 1 : card.interval * 2;
+                } else { // Easy
+                    card.interval = card.interval === 0 ? 3 : card.interval * 3;
+                }
+                
+                // Next review time (1 interval unit = 1 minute)
+                card.nextReview = Date.now() + (card.interval * 60 * 1000);
+                
+                // Mark as learned if interval is large enough
+                if (card.interval >= 10 && card.status !== 'learned') {
+                    card.status = 'learned';
+                    learned++;
+                    learnedCount.textContent = learned;
+                    updateProgressBar();
+                }
+                
+                updateTermsList();
+                showNextCard();
+            }
+            
+            // Update the progress bar
+            function updateProgressBar() {
+                const percentage = flashcards.length > 0 ? (learned / flashcards.length) * 100 : 0;
+                progressBar.style.width = `${percentage}%`;
+            }
+            
+            // Update the list of terms
+            function updateTermsList() {
+                termsList.innerHTML = '';
+                
+                flashcards.forEach((card, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        ${card.term} 
+                        <span class="status status-${card.status}">${card.status}</span>
+                    `;
+                    
+                    li.addEventListener('click', () => {
+                        currentIndex = index;
+                        termElement.textContent = card.term;
+                        descriptionElement.textContent = card.description;
+                        flashcard.classList.remove('flipped');
+                        showAnswerBtn.style.display = 'block';
+                        ratingButtons.style.display = 'none';
+                    });
+                    
+                    termsList.appendChild(li);
+                });
+            }
+        });
+    </script>
 </body>
 </html>
