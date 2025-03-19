@@ -5,17 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flashcard Memorization System</title>
     <style>
+        :root {
+            /* Light mode colors (default) */
+            --bg-color: #f5f5f5;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --card-back-bg: #3498db;
+            --card-back-text: #ffffff;
+            --input-bg: #f9f9f9;
+            --border-color: #dddddd;
+            --btn-primary: #3498db;
+            --btn-primary-hover: #2980b9;
+            --btn-export: #2ecc71;
+            --btn-export-hover: #27ae60;
+            --btn-clear: #e74c3c;
+            --btn-clear-hover: #c0392b;
+            --btn-review: #9b59b6;
+            --btn-review-hover: #8e44ad;
+            --rating-hard: #e74c3c;
+            --rating-good: #f39c12;
+            --rating-easy: #27ae60;
+            --status-new: #e0e0e0;
+            --status-learning: #f39c12;
+            --status-learned: #27ae60;
+            --status-complete: #8e44ad;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --stat-bg: #f0f0f0;
+        }
+
+        [data-theme="dark"] {
+            /* Dark mode colors */
+            --bg-color: #1a1a1a;
+            --container-bg: #2c2c2c;
+            --text-color: #f5f5f5;
+            --card-bg: #3c3c3c;
+            --card-back-bg: #2980b9;
+            --card-back-text: #ffffff;
+            --input-bg: #3c3c3c;
+            --border-color: #444444;
+            --btn-primary: #2980b9;
+            --btn-primary-hover: #3498db;
+            --btn-export: #27ae60;
+            --btn-export-hover: #2ecc71;
+            --btn-clear: #c0392b;
+            --btn-clear-hover: #e74c3c;
+            --btn-review: #8e44ad;
+            --btn-review-hover: #9b59b6;
+            --rating-hard: #c0392b;
+            --rating-good: #d35400;
+            --rating-easy: #27ae60;
+            --status-new: #666666;
+            --status-learning: #d35400;
+            --status-learned: #27ae60;
+            --status-complete: #8e44ad;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --stat-bg: #3c3c3c;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
+            color: var(--text-color);
+            background-color: var(--bg-color);
             padding: 20px;
         }
 
@@ -23,40 +82,107 @@
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
-            background-color: white;
+            background-color: var(--container-bg);
             border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 3px 10px var(--shadow-color);
         }
 
         header {
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        h1 {
-            color: #2c3e50;
+        header h1 {
+            flex-grow: 1;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        /* Theme toggle switch */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 26px;
+            position: relative;
+            width: 50px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            background-color: white;
+            bottom: 3px;
+            content: "";
+            height: 20px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 20px;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #8e44ad;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .slider-icons {
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 8px;
+            position: relative;
+        }
+
+        .slider-icons i {
+            font-size: 12px;
+            z-index: 1;
         }
 
         .input-section {
             margin-bottom: 20px;
-            background: #f9f9f9;
+            background: var(--input-bg);
             padding: 15px;
             border-radius: 5px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
         }
 
         .input-section h2 {
             margin-bottom: 15px;
-            color: #2c3e50;
+            color: var(--text-color);
             font-size: 18px;
         }
 
         .input-option {
             margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .input-option:last-child {
@@ -69,16 +195,19 @@
             display: block;
             margin-bottom: 10px;
             font-weight: bold;
+            color: var(--text-color);
         }
 
         #textInput {
             width: 100%;
             height: 100px;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             margin-bottom: 10px;
             font-family: monospace;
+            background-color: var(--card-bg);
+            color: var(--text-color);
         }
 
         .file-upload {
@@ -98,14 +227,14 @@
             cursor: pointer;
             font-size: 16px;
             transition: all 0.3s;
-            background-color: #3498db;
+            background-color: var(--btn-primary);
             color: white;
         }
 
         .btn:hover {
-            background-color: #2980b9;
+            background-color: var(--btn-primary-hover);
             transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px var(--shadow-color);
         }
 
         .btn:active {
@@ -113,11 +242,31 @@
         }
 
         .btn-export {
-            background-color: #2ecc71;
+            background-color: var(--btn-export);
         }
 
         .btn-export:hover {
-            background-color: #27ae60;
+            background-color: var(--btn-export-hover);
+        }
+
+        .btn-clear {
+            background-color: var(--btn-clear);
+        }
+
+        .btn-clear:hover {
+            background-color: var(--btn-clear-hover);
+        }
+
+        .btn-review {
+            background-color: var(--btn-review);
+            font-weight: bold;
+            font-size: 18px;
+            padding: 12px 30px;
+            margin-top: 10px;
+        }
+
+        .btn-review:hover {
+            background-color: var(--btn-review-hover);
         }
 
         .stats {
@@ -127,7 +276,7 @@
         .progress-container {
             width: 100%;
             height: 20px;
-            background-color: #e0e0e0;
+            background-color: var(--input-bg);
             border-radius: 10px;
             margin-bottom: 10px;
             overflow: hidden;
@@ -135,7 +284,7 @@
 
         .progress-bar {
             height: 100%;
-            background-color: #27ae60;
+            background-color: var(--status-learned);
             width: 0%;
             transition: width 0.3s ease;
         }
@@ -143,7 +292,7 @@
         .stats-text {
             text-align: center;
             font-size: 16px;
-            color: #555;
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
@@ -152,7 +301,7 @@
 
         .stat-item {
             padding: 5px 10px;
-            background-color: #f0f0f0;
+            background-color: var(--stat-bg);
             border-radius: 4px;
         }
 
@@ -188,20 +337,20 @@
             justify-content: center;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px var(--shadow-color);
         }
 
         .flashcard-front {
-            background-color: white;
-            color: #2c3e50;
+            background-color: var(--card-bg);
+            color: var(--text-color);
             font-size: 24px;
             font-weight: bold;
-            border: 1px solid #eee;
+            border: 1px solid var(--border-color);
         }
 
         .flashcard-back {
-            background-color: #3498db;
-            color: white;
+            background-color: var(--card-back-bg);
+            color: var(--card-back-text);
             transform: rotateY(180deg);
             font-size: 18px;
         }
@@ -233,33 +382,48 @@
         }
 
         .rating-btn[data-rating="1"] {
-            background-color: #e74c3c;
+            background-color: var(--rating-hard);
         }
 
         .rating-btn[data-rating="3"] {
-            background-color: #f39c12;
+            background-color: var(--rating-good);
         }
 
         .rating-btn[data-rating="5"] {
-            background-color: #27ae60;
+            background-color: var(--rating-easy);
         }
 
         .complete-btn {
-            background-color: #8e44ad;
+            background-color: var(--status-complete);
             margin-top: 10px;
         }
 
         .term-list {
             margin-top: 30px;
-            background: #f9f9f9;
+            background: var(--input-bg);
             padding: 20px;
             border-radius: 5px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
         }
 
         .term-list h2 {
             margin-bottom: 15px;
-            color: #2c3e50;
+            color: var(--text-color);
+        }
+
+        .term-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .term-count {
+            font-size: 14px;
+            color: var(--text-color);
+            background-color: var(--stat-bg);
+            padding: 3px 8px;
+            border-radius: 10px;
         }
 
         .filter-options {
@@ -274,6 +438,7 @@
             align-items: center;
             gap: 5px;
             cursor: pointer;
+            color: var(--text-color);
         }
 
         .term-list ul {
@@ -284,14 +449,15 @@
 
         .term-list li {
             padding: 8px 10px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             cursor: pointer;
+            color: var(--text-color);
         }
 
         .term-list li:hover {
-            background-color: #f0f0f0;
+            background-color: var(--stat-bg);
         }
 
         .status {
@@ -301,21 +467,22 @@
         }
 
         .status-new {
-            background-color: #e0e0e0;
+            background-color: var(--status-new);
+            color: white;
         }
 
         .status-learning {
-            background-color: #f39c12;
+            background-color: var(--status-learning);
             color: white;
         }
 
         .status-learned {
-            background-color: #27ae60;
+            background-color: var(--status-learned);
             color: white;
         }
 
         .status-complete {
-            background-color: #8e44ad;
+            background-color: var(--status-complete);
             color: white;
         }
 
@@ -326,19 +493,38 @@
 
         .reset-btn {
             cursor: pointer;
-            color: #e74c3c;
+            color: var(--btn-clear);
             font-size: 14px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--btn-export);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px var(--shadow-color);
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
         }
 
         .debug-info {
             margin-top: 20px;
             padding: 10px;
-            background-color: #f8f8f8;
-            border: 1px solid #ddd;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             font-family: monospace;
             font-size: 12px;
             display: none;
+            color: var(--text-color);
         }
 
         @media (max-width: 600px) {
@@ -358,8 +544,21 @@
 <body>
     <div class="container">
         <header>
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <div class="slider-icons">
+                        <span>☀️</span>
+                        <span>🌙</span>
+                    </div>
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider"></div>
+                </label>
+            </div>
             <h1>Flashcard Memorization System</h1>
+            <div style="width: 74px;"></div> <!-- Spacer for centering -->
         </header>
+        
+        <div id="notification" class="notification"></div>
         
         <div class="input-section">
             <h2>Add Your Flashcards</h2>
@@ -371,8 +570,9 @@ cat:a small domestic animal
 JavaScript:a programming language"></textarea>
                 
                 <div class="buttons-row">
-                    <button id="loadTextBtn" class="btn">Load Flashcards</button>
+                    <button id="loadTextBtn" class="btn">Add Flashcards</button>
                     <button id="exportBtn" class="btn btn-export">Export Flashcards</button>
+                    <button id="clearBtn" class="btn btn-clear">Clear All</button>
                 </div>
             </div>
             
@@ -380,7 +580,7 @@ JavaScript:a programming language"></textarea>
                 <label for="fileInput">Or upload a .txt file (same format)</label>
                 <input type="file" id="fileInput" accept=".txt">
                 <div class="file-upload">
-                    <button id="loadFileBtn" class="btn">Load From File</button>
+                    <button id="loadFileBtn" class="btn">Add From File</button>
                 </div>
             </div>
             
@@ -409,6 +609,7 @@ JavaScript:a programming language"></textarea>
                 </div>
                 <div class="flashcard-back">
                     <p id="description"></p>
+                    <div class="click-hint">Click to flip back</div>
                 </div>
             </div>
         </div>
@@ -421,10 +622,14 @@ JavaScript:a programming language"></textarea>
                 <button class="btn rating-btn" data-rating="5">Easy</button>
                 <button id="complete-btn" class="btn complete-btn">Mark Complete</button>
             </div>
+            <button id="review-btn" class="btn btn-review" style="display: none;">Review Again</button>
         </div>
         
         <div class="term-list">
-            <h2>Your Flashcards</h2>
+            <div class="term-list-header">
+                <h2>Your Flashcards</h2>
+                <span class="term-count" id="filtered-count">0 cards</span>
+            </div>
             <div class="filter-options">
                 <label><input type="checkbox" id="filter-new" checked> New</label>
                 <label><input type="checkbox" id="filter-learning" checked> Learning</label>
@@ -439,6 +644,29 @@ JavaScript:a programming language"></textarea>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Theme switcher
+            const toggleSwitch = document.querySelector('#checkbox');
+            
+            // Check for saved theme preference
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                toggleSwitch.checked = true;
+            }
+            
+            // Listen for theme toggle changes
+            toggleSwitch.addEventListener('change', function(e) {
+                if (this.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                    showNotification("Dark mode enabled");
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                    showNotification("Light mode enabled");
+                }
+            });
+            
             // Debug function
             function debug(message) {
                 console.log(message);
@@ -454,6 +682,7 @@ JavaScript:a programming language"></textarea>
             const loadTextBtn = document.getElementById('loadTextBtn');
             const loadFileBtn = document.getElementById('loadFileBtn');
             const exportBtn = document.getElementById('exportBtn');
+            const clearBtn = document.getElementById('clearBtn');
             const sampleBtn = document.getElementById('sampleBtn');
             const flashcardEl = document.getElementById('flashcard');
             const termElement = document.getElementById('term');
@@ -461,12 +690,15 @@ JavaScript:a programming language"></textarea>
             const showAnswerBtn = document.getElementById('show-answer');
             const ratingButtons = document.getElementById('rating-buttons');
             const completeBtn = document.getElementById('complete-btn');
+            const reviewBtn = document.getElementById('review-btn');
             const progressBar = document.getElementById('progress-bar');
             const totalCount = document.getElementById('total-count');
             const learningCount = document.getElementById('learning-count');
             const learnedCount = document.getElementById('learned-count');
             const completeCount = document.getElementById('complete-count');
             const termsList = document.getElementById('terms');
+            const filteredCount = document.getElementById('filtered-count');
+            const notification = document.getElementById('notification');
             
             // Filter checkboxes
             const filterNew = document.getElementById('filter-new');
@@ -484,11 +716,15 @@ JavaScript:a programming language"></textarea>
                 complete: 0
             };
             
+            // Check for saved data
+            loadSavedData();
+            
             // Event listeners for input methods
             loadTextBtn.addEventListener('click', function() {
                 const text = textInput.value.trim();
                 if (text) {
-                    parseFlashcards(text);
+                    parseFlashcards(text, false);
+                    textInput.value = ''; // Clear the input after loading
                 } else {
                     alert("Please enter some flashcard data first.");
                 }
@@ -505,7 +741,8 @@ JavaScript:a programming language"></textarea>
                 
                 reader.onload = function(e) {
                     const text = e.target.result;
-                    parseFlashcards(text);
+                    parseFlashcards(text, false);
+                    fileInput.value = ''; // Clear the file input
                 };
                 
                 reader.onerror = function() {
@@ -515,20 +752,61 @@ JavaScript:a programming language"></textarea>
                 reader.readAsText(file);
             });
             
+            clearBtn.addEventListener('click', function() {
+                if (confirm("Are you sure you want to clear all flashcards? This cannot be undone.")) {
+                    flashcards = [];
+                    currentIndex = 0;
+                    stats = {
+                        new: 0,
+                        learning: 0,
+                        learned: 0,
+                        complete: 0
+                    };
+                    updateStats();
+                    updateTermsList();
+                    termElement.textContent = "Enter terms above to begin";
+                    descriptionElement.textContent = "";
+                    showAnswerBtn.style.display = 'none';
+                    ratingButtons.style.display = 'none';
+                    reviewBtn.style.display = 'none';
+                    saveData();
+                    showNotification("All flashcards cleared!");
+                }
+            });
+            
             exportBtn.addEventListener('click', exportFlashcards);
-            sampleBtn.addEventListener('click', loadSampleData);
+            sampleBtn.addEventListener('click', function() {
+                if (flashcards.length > 0) {
+                    if (!confirm("This will replace your current flashcards. Continue?")) {
+                        return;
+                    }
+                }
+                loadSampleData();
+            });
+            
             showAnswerBtn.addEventListener('click', showAnswer);
             completeBtn.addEventListener('click', markComplete);
+            reviewBtn.addEventListener('click', startReview);
             
-            // Add click event to the flashcard to show answer
+            // Add click event to the flashcard to toggle front/back
             flashcardEl.addEventListener('click', function() {
-                if (!flashcardEl.classList.contains('flipped') && 
-                    flashcards.length > 0 && 
+                // Check if the flashcard is valid for interaction
+                if (flashcards.length > 0 && 
                     termElement.textContent !== "No flashcards loaded" &&
                     termElement.textContent !== "All caught up!" &&
                     termElement.textContent !== "No valid flashcards found" &&
                     termElement.textContent !== "Enter terms above to begin") {
-                    showAnswer();
+                    
+                    // If the card is already flipped (showing the description)
+                    if (flashcardEl.classList.contains('flipped')) {
+                        // Flip it back to show the term
+                        flashcardEl.classList.remove('flipped');
+                        showAnswerBtn.style.display = 'block';
+                        ratingButtons.style.display = 'none';
+                    } else {
+                        // Otherwise, flip it to show the description
+                        showAnswer();
+                    }
                 }
             });
             
@@ -546,6 +824,21 @@ JavaScript:a programming language"></textarea>
             filterLearned.addEventListener('change', updateTermsList);
             filterComplete.addEventListener('change', updateTermsList);
             
+            // Function to start a review session
+            function startReview() {
+                // Reset the nextReview time for all cards except complete ones
+                flashcards.forEach(card => {
+                    if (card.status !== 'complete') {
+                        card.nextReview = Date.now();
+                    }
+                });
+                
+                reviewBtn.style.display = 'none';
+                showNotification("Review session started!");
+                saveData();
+                showNextCard();
+            }
+            
             // Function to load sample data
             function loadSampleData() {
                 const sampleData = `apple:a fruit with red or green skin and a whitish interior
@@ -559,15 +852,62 @@ coffee:a beverage made from roasted coffee beans
 bicycle:a vehicle with two wheels propelled by pedals
 democracy:a system of government by the whole population`;
                 
-                textInput.value = sampleData;
-                parseFlashcards(sampleData);
+                parseFlashcards(sampleData, true);
+                showNotification("Sample data loaded!");
             }
             
-            // Parse flashcards from text
-            function parseFlashcards(text) {
-                // Reset data
-                flashcards = [];
-                currentIndex = 0;
+            // Show notification
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Save data to localStorage
+            function saveData() {
+                try {
+                    localStorage.setItem('flashcards', JSON.stringify(flashcards));
+                    localStorage.setItem('stats', JSON.stringify(stats));
+                } catch (e) {
+                    console.error("Could not save to localStorage:", e);
+                }
+            }
+            
+            // Load data from localStorage
+            function loadSavedData() {
+                try {
+                    const savedCards = localStorage.getItem('flashcards');
+                    const savedStats = localStorage.getItem('stats');
+                    
+                    if (savedCards) {
+                        flashcards = JSON.parse(savedCards);
+                        stats = savedStats ? JSON.parse(savedStats) : {
+                            new: 0,
+                            learning: 0,
+                            learned: 0,
+                            complete: 0
+                        };
+                        
+                        // Recalculate stats in case they're out of sync
+                        recalculateStats();
+                        updateStats();
+                        updateTermsList();
+                        
+                        if (flashcards.length > 0) {
+                            showNextCard();
+                            showNotification("Loaded " + flashcards.length + " saved flashcards!");
+                        }
+                    }
+                } catch (e) {
+                    console.error("Could not load from localStorage:", e);
+                }
+            }
+            
+            // Recalculate stats based on cards
+            function recalculateStats() {
                 stats = {
                     new: 0,
                     learning: 0,
@@ -575,11 +915,34 @@ democracy:a system of government by the whole population`;
                     complete: 0
                 };
                 
+                flashcards.forEach(card => {
+                    stats[card.status]++;
+                });
+            }
+            
+            // Parse flashcards from text
+            function parseFlashcards(text, clearExisting = false) {
+                // If clearExisting is true, reset everything
+                if (clearExisting) {
+                    flashcards = [];
+                    currentIndex = 0;
+                    stats = {
+                        new: 0,
+                        learning: 0,
+                        learned: 0,
+                        complete: 0
+                    };
+                }
+                
                 // Parse the text (format: term:description)
                 const lines = text.split('\n');
                 debug(`Found ${lines.length} lines in input`);
                 
-                let validCards = 0;
+                let addedCards = 0;
+                let duplicateCards = 0;
+                
+                // Get existing terms for duplicate check
+                const existingTerms = new Set(flashcards.map(card => card.term.toLowerCase()));
                 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
@@ -588,26 +951,14 @@ democracy:a system of government by the whole population`;
                     // Check if this is an export with status information
                     const exportFormatMatch = line.match(/^(.+?):(.+?)\s*\[(new|learning|learned|complete)(?:,(\d+))?\]$/);
                     
+                    let term, description, status, interval;
+                    
                     if (exportFormatMatch) {
                         // Format is term:description [status,interval]
-                        const term = exportFormatMatch[1].trim();
-                        const description = exportFormatMatch[2].trim();
-                        const status = exportFormatMatch[3];
-                        const interval = exportFormatMatch[4] ? parseInt(exportFormatMatch[4]) : 0;
-                        
-                        if (!term || !description) continue;
-                        
-                        flashcards.push({
-                            term,
-                            description,
-                            status,
-                            nextReview: Date.now() + (interval * 60 * 1000),
-                            interval
-                        });
-                        
-                        // Update stats
-                        stats[status]++;
-                        validCards++;
+                        term = exportFormatMatch[1].trim();
+                        description = exportFormatMatch[2].trim();
+                        status = exportFormatMatch[3];
+                        interval = exportFormatMatch[4] ? parseInt(exportFormatMatch[4]) : 0;
                     } else {
                         // Regular format: term:description
                         const colonIndex = line.indexOf(':');
@@ -616,38 +967,58 @@ democracy:a system of government by the whole population`;
                             continue;
                         }
                         
-                        const term = line.substring(0, colonIndex).trim();
-                        const description = line.substring(colonIndex + 1).trim();
-                        
-                        if (!term || !description) {
-                            debug(`Line ${i+1} has empty term or description: ${line}`);
-                            continue;
-                        }
-                        
-                        flashcards.push({
-                            term,
-                            description,
-                            status: 'new',
-                            nextReview: Date.now(),
-                            interval: 0
-                        });
-                        stats.new++;
-                        validCards++;
+                        term = line.substring(0, colonIndex).trim();
+                        description = line.substring(colonIndex + 1).trim();
+                        status = 'new';
+                        interval = 0;
                     }
+                    
+                    if (!term || !description) {
+                        debug(`Line ${i+1} has empty term or description`);
+                        continue;
+                    }
+                    
+                    // Check for duplicates
+                    if (existingTerms.has(term.toLowerCase())) {
+                        duplicateCards++;
+                        continue;
+                    }
+                    
+                    // Add the new card
+                    flashcards.push({
+                        term,
+                        description,
+                        status,
+                        nextReview: Date.now() + (interval * 60 * 1000),
+                        interval
+                    });
+                    
+                    existingTerms.add(term.toLowerCase());
+                    stats[status]++;
+                    addedCards++;
                 }
                 
-                debug(`Added ${validCards} valid flashcards`);
+                debug(`Added ${addedCards} new flashcards, skipped ${duplicateCards} duplicates`);
                 
                 // Update UI
                 updateStats();
                 updateTermsList();
+                saveData();
                 
-                if (flashcards.length > 0) {
+                // Show the next card if we have cards but none are currently shown
+                if (flashcards.length > 0 && (termElement.textContent === "Enter terms above to begin" || 
+                                             termElement.textContent === "No flashcards loaded" ||
+                                             termElement.textContent === "No valid flashcards found")) {
                     showNextCard();
+                }
+                
+                // Show notification
+                if (addedCards > 0) {
+                    showNotification(`Added ${addedCards} new flashcards!${duplicateCards > 0 ? ` (Skipped ${duplicateCards} duplicates)` : ''}`);
+                } else if (duplicateCards > 0) {
+                    showNotification(`No new cards added. Skipped ${duplicateCards} duplicates.`);
                 } else {
-                    termElement.textContent = "No valid flashcards found";
-                    descriptionElement.textContent = "Please check your input format (term:description)";
-                    alert("No valid flashcards found. Please check the format (term:description).");
+                    showNotification("No valid flashcards found in the input.");
                 }
             }
             
@@ -671,14 +1042,20 @@ democracy:a system of government by the whole population`;
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'flashcards_export.txt';
+                document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
                 
                 // Clean up
                 URL.revokeObjectURL(url);
+                showNotification(`Exported ${flashcards.length} flashcards!`);
             }
             
             // Show the next card due for review
             function showNextCard() {
+                // Hide the review button first
+                reviewBtn.style.display = 'none';
+                
                 // Check if there are any flashcards
                 if (flashcards.length === 0) {
                     termElement.textContent = "No flashcards loaded";
@@ -699,6 +1076,13 @@ democracy:a system of government by the whole population`;
                     descriptionElement.textContent = "No cards due for review right now.";
                     showAnswerBtn.style.display = 'none';
                     ratingButtons.style.display = 'none';
+                    
+                    // Show the review button if there are cards that could be reviewed
+                    const reviewableCards = flashcards.some(card => card.status !== 'complete');
+                    if (reviewableCards) {
+                        reviewBtn.style.display = 'block';
+                    }
+                    
                     return;
                 }
                 
@@ -729,6 +1113,7 @@ democracy:a system of government by the whole population`;
                     flashcards[currentIndex].status = 'learning';
                     updateStats();
                     updateTermsList();
+                    saveData();
                 }
             }
             
@@ -758,6 +1143,7 @@ democracy:a system of government by the whole population`;
                 
                 updateStats();
                 updateTermsList();
+                saveData();
                 showNextCard();
             }
             
@@ -786,6 +1172,7 @@ democracy:a system of government by the whole population`;
                 
                 updateStats();
                 updateTermsList();
+                saveData();
                 showNextCard();
             }
             
@@ -823,6 +1210,7 @@ democracy:a system of government by the whole population`;
                 
                 updateStats();
                 updateTermsList();
+                saveData();
             }
             
             // Update the list of terms
@@ -838,6 +1226,9 @@ democracy:a system of government by the whole population`;
                 };
                 
                 const filteredCards = flashcards.filter(card => filters[card.status]);
+                
+                // Update filtered count
+                filteredCount.textContent = `${filteredCards.length} card${filteredCards.length !== 1 ? 's' : ''}`;
                 
                 filteredCards.forEach((card, i) => {
                     const index = flashcards.indexOf(card);
@@ -881,6 +1272,7 @@ democracy:a system of government by the whole population`;
                         flashcardEl.classList.remove('flipped');
                         showAnswerBtn.style.display = 'block';
                         ratingButtons.style.display = 'none';
+                        reviewBtn.style.display = 'none';
                     });
                     
                     termsList.appendChild(li);
