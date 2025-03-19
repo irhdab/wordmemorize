@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memrise-Style Memorization</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Vocabulary Memorizer</h1>
+        </header>
+        
+        <div class="file-input">
+            <label for="vocab-file">Upload your vocabulary file (.txt):</label>
+            <input type="file" id="vocab-file" accept=".txt">
+        </div>
+        
+        <div class="learning-area" id="learning-area">
+            <div id="progress-indicator"></div>
+            <div id="card-container" class="hidden">
+                <div id="question"></div>
+                <div id="answer" class="hidden"></div>
+                <button id="show-answer">Show Answer</button>
+                <div class="rating-buttons hidden" id="rating-buttons">
+                    <button class="rating-btn" data-rating="1">Hard</button>
+                    <button class="rating-btn" data-rating="3">Good</button>
+                    <button class="rating-btn" data-rating="5">Easy</button>
+                </div>
+            </div>
+            <div id="stats-container"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
